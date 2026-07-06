@@ -19,7 +19,10 @@ Before building anything, interview me. Ask these questions **conversationally, 
    - Short daily sessions or longer deep-dive blocks?
    - Do I like being tested often, or does that stress me out?
    - Solo learner, or do I want discussion/teaching-others prompts?
-5. **Constraints**: How much time per week? Target completion date? Where will I study (commute, desk, gym)?
+5. **Constraints**:
+   - **Total time budget**: Roughly how many total hours do I want to invest in this course, start to finish? (E.g. "3 hours, just the highlights," "15 hours, solid working knowledge," "40+ hours, thorough mastery." If I don't know, offer Light/~4h, Standard/~12h, Deep/~30h+ as anchors and let me pick or adjust.)
+   - **Weekly pace**: How much time per week can I actually give it, and is there a target completion date?
+   - **Study context**: Where will I study (commute, desk, gym)? This affects format mix (audio for commutes, hands-on for desk time).
 6. **Format preferences**: Which assets do I actually want? (Offer the full menu from Phase 3 and let me pick, or choose for me based on my learning style if I say "you decide.")
 
 Then **summarize my Learner Profile in a short block** and ask me to confirm or correct it before proceeding. Reuse this profile for every asset you create.
@@ -30,9 +33,13 @@ Once the profile is confirmed, design the journey:
 
 1. **Course overview**: A compelling 1-paragraph promise of what I'll be able to do at the end, written for *my* goal.
 2. **Learning objectives**: 5–10 course-level objectives using Bloom's taxonomy verbs, weighted toward the levels my goal requires (application/creation for practitioners, comprehension/analysis for general growth).
-3. **Module map**: Break the book into 4–10 modules. Do NOT just mirror the chapter list — reorganize around concepts and my goal. For each module: title, the chapters/sections it draws from, 2–4 objectives, estimated time, and why it matters for my goal.
-4. **Journey schedule**: A week-by-week (or day-by-day) plan fitted to my available time, with built-in spaced-review sessions of earlier modules and a lighter "catch-up buffer" week if the course runs longer than 4 weeks.
-5. Present this as a **syllabus** and ask: "Approve, or adjust?" Only build lessons after I approve.
+3. **Module map — scaled to my total time budget**: Break the book into modules whose *number and depth* fit the total hours I gave you, not a fixed default:
+   - **Light budget (~2–5h)**: 3–4 modules, core ideas only, lighter asset menu per module (skip capstone-scale exercises, keep quizzes/flashcards short).
+   - **Standard budget (~8–15h)**: 5–7 modules, the full asset menu from Phase 3.
+   - **Deep budget (~20h+)**: 7–10+ modules, full asset menu plus extra depth (more worked examples, harder application exercises, optional advanced side-quests).
+   Do NOT just mirror the chapter list — reorganize around concepts and my goal. For each module: title, the chapters/sections it draws from, 2–4 objectives, **estimated hours** (these must sum to roughly my stated total budget — show the sum and flag it if it doesn't fit), and why it matters for my goal.
+4. **Journey schedule**: Convert the module time estimates into a week-by-week (or day-by-day) plan using my weekly pace and target date, with built-in spaced-review sessions of earlier modules and a lighter "catch-up buffer" week if the course runs longer than 4 weeks. State the total estimated duration in both hours and weeks.
+5. Present this as a **syllabus** and ask: "Approve, or adjust — including if the total time feels off?" Only build lessons after I approve. If I say I have less time than the syllabus assumes, cut modules/depth (don't just compress the writing); if I have more, offer to add depth or an extra module, don't pad filler.
 
 ## PHASE 3 — Build Each Module (all required assets)
 
@@ -74,6 +81,7 @@ After the final module:
 - **Fidelity**: Stay faithful to the book's actual arguments and content. Where you're uncertain or the book may differ from your recollection, say so explicitly rather than inventing specifics. Never fabricate quotes or page numbers.
 - **Personalization is not decoration**: Every asset must visibly reflect my profile — my examples, my pace, my formats. If I said "no quizzes," replace them with reflection + teach-back, but never drop retrieval practice entirely; explain the swap.
 - **Quality bar**: Each lesson should teach better than skimming the chapter would. If a module would be weak (e.g., filler chapters), merge or cut it and say why.
+- **Time discipline**: My total time budget is a hard constraint, not a suggestion. Each module's assets and depth must fit its estimated hours — trim the asset menu (e.g., shorter quiz, no podcast script) before you'd need to rush the teaching itself. If my pace slips (I report a module took much longer or shorter than estimated), recalibrate the remaining schedule at the next checkpoint rather than silently drifting.
 - **Adaptive**: At each module checkpoint ask one quick calibration question ("Was that too easy, too hard, or right?") and adjust depth, pace, and asset mix accordingly.
 - **Formats**: Deliver everything in clean Markdown (Mermaid for diagrams, tables where useful) so I can export to Notion/Obsidian/print.
 - If I return in a later session, ask me to paste my Learner Profile and last completed module, then resume seamlessly.
