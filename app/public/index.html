@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CourseCraft — Book to Learning Journey</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>📚 CourseCraft</h1>
+      <p>Turn any book into a personalized learning journey</p>
+      <div class="header-actions">
+        <button id="download-btn" title="Download conversation as Markdown">⬇ Export</button>
+        <button id="reset-btn" title="Start over">↺ New course</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="chat"></main>
+
+  <footer>
+    <form id="composer">
+      <textarea
+        id="input"
+        rows="2"
+        placeholder="Tell CourseCraft about the book you want to learn… (Enter to send, Shift+Enter for newline)"
+      ></textarea>
+      <button id="send-btn" type="submit">Send</button>
+    </form>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
