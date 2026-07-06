@@ -1,3 +1,22 @@
+// Require an active session; bounce to login otherwise.
+fetch("/api/me")
+  .then(async (r) => {
+    if (r.status === 401) return (location.href = "/login");
+    if (r.status === 403) {
+      alert("Your subscription is no longer active. Please resubscribe to continue.");
+      return (location.href = "/#pricing");
+    }
+    const me = await r.json();
+    document.getElementById("user-info").textContent =
+      `${me.email} · ${me.usagePercent}% of monthly fair-use`;
+  })
+  .catch(() => {});
+
+document.getElementById("logout-btn").addEventListener("click", async () => {
+  await fetch("/api/logout", { method: "POST" });
+  location.href = "/";
+});
+
 const chat = document.getElementById("chat");
 const form = document.getElementById("composer");
 const input = document.getElementById("input");
@@ -46,8 +65,17 @@ async function sendMessage(text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages }),
     });
+    if (res.status === 401) {
+      location.href = "/login";
+      return;
+    }
     if (!res.ok || !res.body) {
-      throw new Error(`Server error (${res.status})`);
+      let detail = `Server error (${res.status})`;
+      try {
+        const j = await res.json();
+        if (j.error) detail = j.error;
+      } catch {}
+      throw new Error(detail);
     }
 
     const reader = res.body.getReader();

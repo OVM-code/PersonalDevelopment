@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log in — CourseCraft</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="landing">
+  <header class="landing-header">
+    <div class="header-inner">
+      <h1><a href="/" style="text-decoration:none;color:inherit">📚 CourseCraft</a></h1>
+    </div>
+  </header>
+
+  <section class="hero narrow">
+    <h2>Log in</h2>
+    <p>Enter the license key from your purchase confirmation email.</p>
+    <form id="login-form" class="login-form">
+      <input type="text" id="license" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" autocomplete="off" required />
+      <button type="submit" class="btn-primary">Log in</button>
+    </form>
+    <p id="login-error" class="error-text" hidden></p>
+    <p class="small">No key yet? <a href="/#pricing">Subscribe here</a>. Lost your key? Check the Lemon Squeezy receipt email or contact support.</p>
+  </section>
+
+  <footer class="landing-footer">
+    <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a>
+  </footer>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const errEl = document.getElementById("login-error");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errEl.hidden = true;
+      const btn = form.querySelector("button");
+      btn.disabled = true;
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ licenseKey: document.getElementById("license").value }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Login failed");
+        location.href = "/app";
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.hidden = false;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

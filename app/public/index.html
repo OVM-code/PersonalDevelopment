@@ -3,34 +3,77 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CourseCraft — Book to Learning Journey</title>
+  <title>CourseCraft — Turn any book into your personal course</title>
+  <meta name="description" content="CourseCraft turns any book into a complete, personalized learning journey — lessons, quizzes, flashcards, audio scripts and a study schedule, adapted to how you learn." />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <header>
+<body class="landing">
+  <header class="landing-header">
     <div class="header-inner">
       <h1>📚 CourseCraft</h1>
-      <p>Turn any book into a personalized learning journey</p>
-      <div class="header-actions">
-        <button id="download-btn" title="Download conversation as Markdown">⬇ Export</button>
-        <button id="reset-btn" title="Start over">↺ New course</button>
-      </div>
+      <nav>
+        <a href="/login">Log in</a>
+        <a href="#pricing" class="btn-primary" id="cta-top">Get started</a>
+      </nav>
     </div>
   </header>
 
-  <main id="chat"></main>
+  <section class="hero">
+    <h2>Stop reading books. Start <em>learning</em> them.</h2>
+    <p>
+      CourseCraft turns any book into a complete, personalized course — built around
+      <strong>your</strong> goals and <strong>your</strong> way of learning. It interviews you,
+      designs the curriculum, then teaches you module by module.
+    </p>
+    <a href="#pricing" class="btn-primary big">Turn your first book into a course →</a>
+  </section>
 
-  <footer>
-    <form id="composer">
-      <textarea
-        id="input"
-        rows="2"
-        placeholder="Tell CourseCraft about the book you want to learn… (Enter to send, Shift+Enter for newline)"
-      ></textarea>
-      <button id="send-btn" type="submit">Send</button>
-    </form>
+  <section class="features">
+    <div class="feature">
+      <h3>🎯 Truly personalized</h3>
+      <p>It starts by learning about you: your goal, prior knowledge, schedule, and whether you learn best by reading, seeing, listening, or doing. Every lesson reflects it.</p>
+    </div>
+    <div class="feature">
+      <h3>🗂 Every asset included</h3>
+      <p>Teaching lessons, concept maps, quizzes with explained answers, Anki-ready flashcards, podcast-style audio scripts, real-world exercises, and a capstone project.</p>
+    </div>
+    <div class="feature">
+      <h3>🧠 Built on learning science</h3>
+      <p>Spaced repetition, retrieval practice, and the Feynman technique are baked in — so what you learn actually sticks, instead of fading in a week.</p>
+    </div>
+    <div class="feature">
+      <h3>📤 Yours to keep</h3>
+      <p>Export everything as Markdown and drop it into Notion, Obsidian, or print it. Your courses belong to you.</p>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <h2>Simple pricing</h2>
+    <div class="price-card">
+      <div class="price"><span id="price-amount">€12</span>/month</div>
+      <ul>
+        <li>Unlimited books &amp; courses</li>
+        <li>All learning assets included</li>
+        <li>Markdown export</li>
+        <li>Fair-use limit, resets monthly</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <a href="#" class="btn-primary big" id="checkout-btn">Subscribe</a>
+      <p class="small">Payment &amp; EU VAT handled securely by Lemon Squeezy.<br/>You'll receive a license key by email — use it to log in.</p>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/login">Log in</a>
   </footer>
 
-  <script src="app.js"></script>
+  <script>
+    fetch("/api/config").then(r => r.json()).then(cfg => {
+      if (cfg.checkoutUrl) {
+        document.getElementById("checkout-btn").href = cfg.checkoutUrl;
+        document.getElementById("cta-top").href = cfg.checkoutUrl;
+      }
+    }).catch(() => {});
+  </script>
 </body>
 </html>

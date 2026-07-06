@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: coursecraft
+    runtime: node
+    rootDir: app
+    plan: starter
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /
+    disk:
+      name: coursecraft-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/coursecraft.db
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LEMONSQUEEZY_WEBHOOK_SECRET
+        sync: false
+      - key: LEMONSQUEEZY_CHECKOUT_URL
+        sync: false
+      - key: MONTHLY_COST_CAP_USD
+        value: "5"
+      - key: MODEL
+        value: claude-sonnet-5
