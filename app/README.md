@@ -116,8 +116,10 @@ started it:
   (`GET /api/courses`), lets them resume one (`GET /api/courses/:id`, replays
   the conversation into the chat), or permanently delete one
   (`DELETE /api/courses/:id`).
-- A soft cap of 100 saved courses per account (`MAX_COURSES_PER_USER` in
-  `server.js`) prevents unbounded storage growth from one account.
+- Capped at 12 saved courses per account per **rolling year** (last 365 days,
+  not a fixed calendar reset) — `MAX_COURSES_PER_YEAR` in `server.js` /
+  `.env`. Deleting an old course frees up a slot for a new one. Creating past
+  the cap returns 429 with a clear message.
 
 This is a change from the original stateless design — conversation content is
 now stored server-side (see `public/privacy.html`, which already reflects

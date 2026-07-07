@@ -16,6 +16,7 @@ import {
   addUsage,
   createCourse,
   listCourses,
+  countCoursesInPastYear,
   getCourse,
   saveCourse,
   deleteCourse,
@@ -191,16 +192,18 @@ app.get("/api/me", requireAuth, (req, res) => {
 // Courses — server-side persistence, so a course can be resumed from any
 // device instead of living only in the browser tab that created it.
 // ---------------------------------------------------------------------------
-const MAX_COURSES_PER_USER = 100;
+// Rolling 365-day limit, not a lifetime cap — deleting an old course frees up
+// a slot, and the limit never has a sudden "resets Jan 1st" cliff.
+const MAX_COURSES_PER_YEAR = Number(process.env.MAX_COURSES_PER_YEAR || 12);
 
 app.get("/api/courses", requireAuth, (req, res) => {
   res.json(listCourses(req.session.user_id));
 });
 
 app.post("/api/courses", requireAuth, (req, res) => {
-  if (listCourses(req.session.user_id).length >= MAX_COURSES_PER_USER) {
+  if (countCoursesInPastYear(req.session.user_id) >= MAX_COURSES_PER_YEAR) {
     return res.status(429).json({
-      error: `You've hit the ${MAX_COURSES_PER_USER}-course limit. Delete an old one to make room.`,
+      error: `You've saved ${MAX_COURSES_PER_YEAR} courses in the past year, which is the plan's limit. Delete an old one to make room, or contact support.`,
     });
   }
   const title = (req.body?.title || "Untitled course").slice(0, 200);

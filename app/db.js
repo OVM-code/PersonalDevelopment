@@ -123,6 +123,17 @@ export function listCourses(userId) {
     .all(userId);
 }
 
+// Courses created in the trailing 365 days — a rolling (not calendar-year)
+// window, so the limit is always "N in the last year," not a fixed reset date.
+export function countCoursesInPastYear(userId) {
+  return db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM courses
+       WHERE user_id = ? AND created_at > datetime('now', '-365 days')`,
+    )
+    .get(userId).n;
+}
+
 export function getCourse(id, userId) {
   const row = db
     .prepare(`SELECT * FROM courses WHERE id = ? AND user_id = ?`)
