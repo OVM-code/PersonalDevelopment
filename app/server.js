@@ -14,6 +14,11 @@ import {
   deleteSession,
   getMonthlyUsage,
   addUsage,
+  createCourse,
+  listCourses,
+  getCourse,
+  saveCourse,
+  deleteCourse,
 } from "./db.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -180,6 +185,54 @@ app.get("/api/me", requireAuth, (req, res) => {
     email: req.session.email,
     usagePercent: Math.min(100, Math.round((usage.cost_microusd / capMicro) * 100)),
   });
+});
+
+// ---------------------------------------------------------------------------
+// Courses — server-side persistence, so a course can be resumed from any
+// device instead of living only in the browser tab that created it.
+// ---------------------------------------------------------------------------
+const MAX_COURSES_PER_USER = 100;
+
+app.get("/api/courses", requireAuth, (req, res) => {
+  res.json(listCourses(req.session.user_id));
+});
+
+app.post("/api/courses", requireAuth, (req, res) => {
+  if (listCourses(req.session.user_id).length >= MAX_COURSES_PER_USER) {
+    return res.status(429).json({
+      error: `You've hit the ${MAX_COURSES_PER_USER}-course limit. Delete an old one to make room.`,
+    });
+  }
+  const title = (req.body?.title || "Untitled course").slice(0, 200);
+  res.json(createCourse(req.session.user_id, title));
+});
+
+app.get("/api/courses/:id", requireAuth, (req, res) => {
+  const id = Number(req.params.id);
+  const course = Number.isInteger(id) ? getCourse(id, req.session.user_id) : null;
+  if (!course) return res.status(404).json({ error: "not_found" });
+  res.json(course);
+});
+
+app.put("/api/courses/:id", requireAuth, (req, res) => {
+  const id = Number(req.params.id);
+  const { messages, title } = req.body || {};
+  if (!Number.isInteger(id) || !Array.isArray(messages)) {
+    return res.status(400).json({ error: "id and messages array required" });
+  }
+  const ok = saveCourse(id, req.session.user_id, {
+    messages,
+    title: title != null ? String(title).slice(0, 200) : null,
+  });
+  if (!ok) return res.status(404).json({ error: "not_found" });
+  res.json({ ok: true });
+});
+
+app.delete("/api/courses/:id", requireAuth, (req, res) => {
+  const id = Number(req.params.id);
+  const ok = Number.isInteger(id) && deleteCourse(id, req.session.user_id);
+  if (!ok) return res.status(404).json({ error: "not_found" });
+  res.json({ ok: true });
 });
 
 // ---------------------------------------------------------------------------

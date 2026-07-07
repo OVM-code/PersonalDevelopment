@@ -29,6 +29,15 @@ db.exec(`
     cost_microusd INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id, month)
   );
+  CREATE TABLE IF NOT EXISTS courses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    title TEXT NOT NULL DEFAULT 'Untitled course',
+    messages_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_courses_user ON courses(user_id, updated_at DESC);
 `);
 
 export function upsertUser(email, { licenseKey = null, status = "active" } = {}) {
@@ -93,6 +102,58 @@ export function addUsage(userId, inputTokens, outputTokens, costMicroUsd) {
        output_tokens = usage.output_tokens + excluded.output_tokens,
        cost_microusd = usage.cost_microusd + excluded.cost_microusd`,
   ).run(userId, currentMonth(), inputTokens, outputTokens, costMicroUsd);
+}
+
+// --- Courses (server-side persistence so a customer can resume any course
+// from any device instead of losing it when they clear browser storage) ---
+
+export function createCourse(userId, title) {
+  const info = db
+    .prepare(`INSERT INTO courses (user_id, title) VALUES (?, ?)`)
+    .run(userId, title || "Untitled course");
+  return getCourse(info.lastInsertRowid, userId);
+}
+
+export function listCourses(userId) {
+  return db
+    .prepare(
+      `SELECT id, title, created_at, updated_at FROM courses
+       WHERE user_id = ? ORDER BY updated_at DESC`,
+    )
+    .all(userId);
+}
+
+export function getCourse(id, userId) {
+  const row = db
+    .prepare(`SELECT * FROM courses WHERE id = ? AND user_id = ?`)
+    .get(id, userId);
+  if (!row) return null;
+  return { ...row, messages: JSON.parse(row.messages_json) };
+}
+
+export function saveCourse(id, userId, { messages, title } = {}) {
+  const existing = db
+    .prepare(`SELECT id FROM courses WHERE id = ? AND user_id = ?`)
+    .get(id, userId);
+  if (!existing) return false;
+
+  if (title != null) {
+    db.prepare(
+      `UPDATE courses SET title = ?, messages_json = ?, updated_at = datetime('now') WHERE id = ?`,
+    ).run(title, JSON.stringify(messages), id);
+  } else {
+    db.prepare(
+      `UPDATE courses SET messages_json = ?, updated_at = datetime('now') WHERE id = ?`,
+    ).run(JSON.stringify(messages), id);
+  }
+  return true;
+}
+
+export function deleteCourse(id, userId) {
+  const result = db
+    .prepare(`DELETE FROM courses WHERE id = ? AND user_id = ?`)
+    .run(id, userId);
+  return result.changes > 0;
 }
 
 export default db;

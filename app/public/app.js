@@ -23,10 +23,18 @@ const input = document.getElementById("input");
 const sendBtn = document.getElementById("send-btn");
 const downloadBtn = document.getElementById("download-btn");
 const resetBtn = document.getElementById("reset-btn");
+const coursesBtn = document.getElementById("courses-btn");
+const coursesPanel = document.getElementById("courses-panel");
+const coursesList = document.getElementById("courses-list");
+const coursesEmpty = document.getElementById("courses-empty");
+const coursesCloseBtn = document.getElementById("courses-close-btn");
 
 // Full conversation history — the API is stateless, so we resend it each turn.
 let messages = [];
 let busy = false;
+// Server-side course this conversation is saved as. Created lazily on first
+// send, so browsing around doesn't litter the account with empty courses.
+let currentCourseId = null;
 
 function addBubble(role, text = "") {
   const div = document.createElement("div");
@@ -46,9 +54,46 @@ function greet() {
   );
 }
 
+function deriveTitle(firstUserMessage) {
+  const oneLine = firstUserMessage.replace(/\s+/g, " ").trim();
+  return oneLine.length > 60 ? oneLine.slice(0, 60) + "…" : oneLine || "Untitled course";
+}
+
+async function saveCurrentCourse() {
+  if (!currentCourseId) return;
+  try {
+    await fetch(`/api/courses/${currentCourseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    });
+  } catch {
+    // Best-effort autosave — a failed save shouldn't interrupt the chat.
+  }
+}
+
+async function ensureCourseCreated(firstUserMessage) {
+  if (currentCourseId) return;
+  try {
+    const res = await fetch("/api/courses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: deriveTitle(firstUserMessage) }),
+    });
+    if (res.ok) {
+      const course = await res.json();
+      currentCourseId = course.id;
+    }
+  } catch {
+    // If this fails, the conversation still works — it just won't be saved.
+  }
+}
+
 async function sendMessage(text) {
   busy = true;
   sendBtn.disabled = true;
+
+  await ensureCourseCreated(messages.length ? messages[0].content : text);
 
   messages.push({ role: "user", content: text });
   addBubble("user", text);
@@ -126,6 +171,7 @@ async function sendMessage(text) {
 
   if (assistantText) {
     messages.push({ role: "assistant", content: assistantText });
+    saveCurrentCourse();
   } else {
     // Failed turn — drop the user message so history stays consistent for retry
     messages.pop();
@@ -166,12 +212,100 @@ downloadBtn.addEventListener("click", () => {
 });
 
 resetBtn.addEventListener("click", () => {
-  if (messages.length && !confirm("Start a new course? Current conversation will be cleared (export first if you want to keep it).")) {
+  if (messages.length && !confirm("Start a new course? Your current one is already saved — find it later under “My courses”.")) {
     return;
   }
   messages = [];
+  currentCourseId = null;
   chat.innerHTML = "";
   greet();
+});
+
+// ---------------------------------------------------------------------------
+// My courses panel — load, resume, delete
+// ---------------------------------------------------------------------------
+
+function formatDate(iso) {
+  return new Date(iso.replace(" ", "T") + "Z").toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+async function openCoursesPanel() {
+  coursesPanel.hidden = false;
+  coursesList.innerHTML = "";
+  coursesEmpty.hidden = true;
+
+  const res = await fetch("/api/courses");
+  if (!res.ok) return;
+  const courses = await res.json();
+
+  if (courses.length === 0) {
+    coursesEmpty.hidden = false;
+    return;
+  }
+
+  for (const course of courses) {
+    const li = document.createElement("li");
+    li.className = "course-item";
+
+    const info = document.createElement("div");
+    info.className = "course-info";
+    const title = document.createElement("div");
+    title.className = "course-title";
+    title.textContent = course.title;
+    const meta = document.createElement("div");
+    meta.className = "course-meta";
+    meta.textContent = `Updated ${formatDate(course.updated_at)}`;
+    info.append(title, meta);
+
+    const actions = document.createElement("div");
+    actions.className = "course-actions";
+
+    const resumeBtn = document.createElement("button");
+    resumeBtn.textContent = "Resume";
+    resumeBtn.addEventListener("click", () => resumeCourse(course.id));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.className = "danger";
+    deleteBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (!confirm(`Delete "${course.title}"? This can't be undone.`)) return;
+      await fetch(`/api/courses/${course.id}`, { method: "DELETE" });
+      if (currentCourseId === course.id) {
+        messages = [];
+        currentCourseId = null;
+        chat.innerHTML = "";
+        greet();
+      }
+      openCoursesPanel();
+    });
+
+    actions.append(resumeBtn, deleteBtn);
+    li.append(info, actions);
+    coursesList.appendChild(li);
+  }
+}
+
+async function resumeCourse(id) {
+  const res = await fetch(`/api/courses/${id}`);
+  if (!res.ok) return;
+  const course = await res.json();
+
+  messages = course.messages;
+  currentCourseId = course.id;
+  chat.innerHTML = "";
+  for (const m of messages) addBubble(m.role, m.content);
+  coursesPanel.hidden = true;
+  input.focus();
+}
+
+coursesBtn.addEventListener("click", openCoursesPanel);
+coursesCloseBtn.addEventListener("click", () => (coursesPanel.hidden = true));
+coursesPanel.addEventListener("click", (e) => {
+  if (e.target === coursesPanel) coursesPanel.hidden = true;
 });
 
 greet();

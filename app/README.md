@@ -9,8 +9,8 @@ interviews them and builds their course module by module with all learning asset
 
 | Piece | What it does |
 |---|---|
-| `server.js` | Express server: landing page, license-key login, Lemon Squeezy webhook, metered streaming chat API |
-| `db.js` | SQLite (better-sqlite3): users, sessions, monthly usage |
+| `server.js` | Express server: landing page, license-key login, Lemon Squeezy webhook, metered streaming chat API, course persistence API |
+| `db.js` | SQLite (better-sqlite3): users, sessions, monthly usage, saved courses |
 | `public/index.html` | Public landing/sales page with pricing + checkout link |
 | `public/login.html` | License-key login |
 | `public/app.html` + `app.js` | The chat app (requires active subscription) |
@@ -101,6 +101,24 @@ Render starter). Adjust `MONTHLY_COST_CAP_USD` and the price on the landing page
 4. Every chat request checks the session, the subscription status, and the
    monthly fair-use budget before calling Claude.
 
-Conversations are never stored server-side — they live in the customer's browser
-(and can be exported as Markdown). The server only stores email, license key
-status, and monthly token/cost counters.
+## Saving & resuming courses ("My courses")
+
+Courses are saved to the server automatically, tied to the customer's account,
+so they can resume any course from any device — not just the browser tab that
+started it:
+
+- The first message in a new conversation lazily creates a `courses` row
+  (title auto-derived from that first message, e.g. "Atomic Habits by James
+  Clear").
+- After every assistant reply, the full message history is autosaved via
+  `PUT /api/courses/:id`.
+- The **🗂 My courses** button lists all of a customer's saved courses
+  (`GET /api/courses`), lets them resume one (`GET /api/courses/:id`, replays
+  the conversation into the chat), or permanently delete one
+  (`DELETE /api/courses/:id`).
+- A soft cap of 100 saved courses per account (`MAX_COURSES_PER_USER` in
+  `server.js`) prevents unbounded storage growth from one account.
+
+This is a change from the original stateless design — conversation content is
+now stored server-side (see `public/privacy.html`, which already reflects
+this). Export-as-Markdown still works independently of saved courses.
